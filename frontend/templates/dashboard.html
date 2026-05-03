@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if role == "librarian" %}LibTrack — Dashboard{% else %}LibTrack — Member Portal{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# ================================================================ #}
+{#  LIBRARIAN VIEW                                                    #}
+{# ================================================================ #}
+{% if role == "librarian" %}
+
+  <!-- Page header -->
+  <div style="margin-bottom: 2rem;">
+    <h1 class="serif" style="font-size: 36px; color: var(--navy); margin-bottom: 0.25rem;">Dashboard</h1>
+    <p style="font-size: 14px; color: var(--muted); font-weight: 300;">Manage books, members, borrowing records and fines.</p>
+  </div>
+
+  <!-- Stats -->
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL BOOKS</div>
+      <div class="stat-value">{{ stats.total_books or 0 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ACTIVE BORROWS</div>
+      <div class="stat-value" style="color: #a8c4f0;">{{ stats.active_borrows or 0 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">OVERDUE</div>
+      <div class="stat-value" style="color: #f0a0a0;">{{ stats.overdue or 0 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">MEMBERS</div>
+      <div class="stat-value" style="color: #9fe1cb;">{{ stats.total_members or 0 }}</div>
+    </div>
+  </div>
+
+  <hr class="gold-rule"/>
+
+  <!-- Add book + Register member -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+
+    <!-- Add Book -->
+    <div class="card">
+      <div class="card-title">Add New Book</div>
+      <form method="POST" action="/books" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label class="field-label">TITLE</label>
+          <input type="text" name="title" required class="field-input" placeholder="Book title"/>
+        </div>
+        <div>
+          <label class="field-label">AUTHOR</label>
+          <input type="text" name="author" required class="field-input" placeholder="Author name"/>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="field-label">ISBN</label>
+            <input type="text" name="isbn" required class="field-input" placeholder="978-..."/>
+          </div>
+          <div>
+            <label class="field-label">COPIES</label>
+            <input type="number" name="copies" min="1" value="1" required class="field-input"/>
+          </div>
+        </div>
+        <div>
+          <label class="field-label">GENRE</label>
+          <select name="genre" class="field-select">
+            <option value="fiction">Fiction</option>
+            <option value="non-fiction">Non-Fiction</option>
+            <option value="science">Science</option>
+            <option value="technology">Technology</option>
+            <option value="history">History</option>
+            <option value="biography">Biography</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-gold">Add Book</button>
+      </form>
+    </div>
+
+    <!-- Register Member -->
+    <div class="card">
+      <div class="card-title">Register Member</div>
+      <form method="POST" action="/members" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label class="field-label">FULL NAME</label>
+          <input type="text" name="name" required class="field-input" placeholder="Member full name"/>
+        </div>
+        <div>
+          <label class="field-label">EMAIL</label>
+          <input type="email" name="email" required class="field-input" placeholder="member@email.com"/>
+        </div>
+        <div>
+          <label class="field-label">MEMBER TYPE</label>
+          <select name="member_type" class="field-select">
+            <option value="student">Student</option>
+            <option value="premium">Premium</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">PHONE</label>
+          <input type="text" name="phone" class="field-input" placeholder="Optional"/>
+        </div>
+        <button type="submit" class="btn-primary">Register Member</button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Issue + Return -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+
+    <!-- Issue Book -->
+    <div class="card">
+      <div class="card-title">Issue Book</div>
+      <form method="POST" action="/borrow" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label class="field-label">MEMBER ID</label>
+          <input type="text" name="member_id" required class="field-input" placeholder="MEM-001"/>
+        </div>
+        <div>
+          <label class="field-label">BOOK ISBN</label>
+          <input type="text" name="isbn" required class="field-input" placeholder="978-..."/>
+        </div>
+        <button type="submit" class="btn-primary">Issue Book</button>
+      </form>
+    </div>
+
+    <!-- Return Book -->
+    <div class="card">
+      <div class="card-title">Process Return</div>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem; font-family: 'Source Code Pro', monospace;">Fine is auto-calculated on return</p>
+      <form method="POST" action="/return" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label class="field-label">BORROW RECORD ID</label>
+          <input type="text" name="record_id" required class="field-input" placeholder="REC-001"/>
+        </div>
+        <button type="submit" class="btn-gold">Process Return</button>
+      </form>
+    </div>
+
+  </div>
+
+  <hr class="gold-rule"/>
+
+  <!-- Overdue Table -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="section-header">
+      <span class="section-title">Overdue Books</span>
+      <span class="pill pill-overdue">{{ stats.overdue or 0 }} overdue</span>
+    </div>
+    {% if overdue_records %}
+    <table class="lib-table">
+      <thead>
+        <tr>
+          <th>RECORD ID</th>
+          <th>MEMBER</th>
+          <th>BOOK</th>
+          <th>DUE DATE</th>
+          <th>DAYS OVERDUE</th>
+          <th>FINE</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in overdue_records %}
+        <tr>
+          <td class="mono" style="font-size: 12px; color: var(--muted);">{{ record.id }}</td>
+          <td>{{ record.member_name }}</td>
+          <td>{{ record.book_title }}</td>
+          <td class="mono" style="font-size: 12px;">{{ record.due_date }}</td>
+          <td><span class="pill pill-overdue">{{ record.days_overdue }}d</span></td>
+          <td class="mono" style="font-size: 13px; color: var(--gold); font-weight: 500;">₹{{ record.fine }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No overdue records — all clear.</div>
+    {% endif %}
+  </div>
+
+  <!-- Members Table -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-title">All Members</span>
+      <span class="section-sub">{{ stats.total_members or 0 }} registered</span>
+    </div>
+    {% if members %}
+    <table class="lib-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>NAME</th>
+          <th>EMAIL</th>
+          <th>TYPE</th>
+          <th>ACTIVE BORROWS</th>
+          <th>FINE DUE</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+        <tr>
+          <td class="mono" style="font-size: 12px; color: var(--muted);">{{ member.id }}</td>
+          <td style="font-weight: 500;">{{ member.name }}</td>
+          <td class="mono" style="font-size: 12px; color: var(--muted);">{{ member.email }}</td>
+          <td>
+            {% if member.member_type == "premium" %}
+              <span class="pill pill-premium">Premium</span>
+            {% else %}
+              <span class="pill pill-student">Student</span>
+            {% endif %}
+          </td>
+          <td class="mono" style="font-size: 13px;">{{ member.active_borrows }}</td>
+          <td class="mono" style="font-size: 13px; {% if member.fine_due > 0 %}color: #c0392b;{% else %}color: var(--muted);{% endif %}">
+            ₹{{ member.fine_due }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No members registered yet.</div>
+    {% endif %}
+  </div>
+
+
+{# ================================================================ #}
+{#  MEMBER VIEW                                                       #}
+{# ================================================================ #}
+{% elif role == "member" %}
+
+  <!-- Page header -->
+  <div style="margin-bottom: 2rem;">
+    <h1 class="serif" style="font-size: 36px; color: var(--navy); margin-bottom: 0.25rem;">Member Portal</h1>
+    <p style="font-size: 14px; color: var(--muted); font-weight: 300;">Search the catalog, manage your borrows and check your fines.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem;">
+
+    <!-- Left column -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+      <!-- Search -->
+      <div class="card">
+        <div class="card-title">Search Catalog</div>
+        <form method="GET" action="/search" style="display: flex; flex-direction: column; gap: 1rem;">
+          <input type="hidden" name="role" value="member"/>
+          <div>
+            <label class="field-label">SEARCH</label>
+            <input type="text" name="q" value="{{ query or '' }}" class="field-input" placeholder="Title, author or genre..."/>
+          </div>
+          <div>
+            <label class="field-label">SEARCH BY</label>
+            <div style="display: flex; gap: 1.5rem; margin-top: 4px;">
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); cursor: pointer;">
+                <input type="radio" name="search_by" value="title" {% if search_by == "title" or not search_by %}checked{% endif %} style="accent-color: var(--gold);"/>
+                Title
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); cursor: pointer;">
+                <input type="radio" name="search_by" value="author" {% if search_by == "author" %}checked{% endif %} style="accent-color: var(--gold);"/>
+                Author
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); cursor: pointer;">
+                <input type="radio" name="search_by" value="genre" {% if search_by == "genre" %}checked{% endif %} style="accent-color: var(--gold);"/>
+                Genre
+              </label>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">Search Books</button>
+        </form>
+      </div>
+
+      <!-- Search Results -->
+      {% if books %}
+      <div class="card">
+        <div class="section-header">
+          <span class="section-title">Results</span>
+          <span class="section-sub">{{ books|length }} found</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% for book in books %}
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.875rem 1rem; background: var(--cream); border: 1px solid var(--card-border); border-radius: 8px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 500; font-size: 14px; color: var(--navy); margin-bottom: 2px;">{{ book.title }}</div>
+              <div style="font-size: 13px; color: var(--muted);">{{ book.author }}</div>
+              <div style="display: flex; gap: 10px; margin-top: 6px;">
+                <span class="mono" style="font-size: 11px; color: var(--muted);">{{ book.isbn }}</span>
+                <span class="mono" style="font-size: 11px; color: var(--muted);">{{ book.genre }}</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;">
+              {% if book.available_copies > 0 %}
+                <span class="pill pill-available">{{ book.available_copies }} avail.</span>
+                <form method="POST" action="/borrow">
+                  <input type="hidden" name="isbn" value="{{ book.isbn }}"/>
+                  <input type="hidden" name="member_id" value="{{ current_member_id }}"/>
+                  <input type="hidden" name="role" value="member"/>
+                  <button type="submit" class="btn-sm btn-sm-navy">Borrow</button>
+                </form>
+              {% else %}
+                <span class="pill pill-borrowed">Unavailable</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- My Borrowed Books -->
+      <div class="card">
+        <div class="section-header">
+          <span class="section-title">My Borrowed Books</span>
+          <span class="section-sub">{{ borrowed_books|length if borrowed_books else 0 }} active</span>
+        </div>
+        {% if borrowed_books %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% for record in borrowed_books %}
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.875rem 1rem; background: {% if record.is_overdue %}#fdf0f0{% else %}var(--cream){% endif %}; border: 1px solid {% if record.is_overdue %}#f0b8b8{% else %}var(--card-border){% endif %}; border-radius: 8px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 500; font-size: 14px; color: var(--navy); margin-bottom: 2px;">{{ record.book_title }}</div>
+              <div style="font-size: 13px; color: var(--muted);">{{ record.book_author }}</div>
+              <div style="display: flex; gap: 12px; margin-top: 6px;">
+                <span class="mono" style="font-size: 11px; color: var(--muted);">Borrowed: {{ record.borrow_date }}</span>
+                <span class="mono" style="font-size: 11px; color: {% if record.is_overdue %}#c0392b{% else %}var(--muted){% endif %};">Due: {{ record.due_date }}</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;">
+              {% if record.is_overdue %}
+                <span class="pill pill-overdue">{{ record.days_overdue }}d overdue</span>
+              {% endif %}
+              <form method="POST" action="/return">
+                <input type="hidden" name="record_id" value="{{ record.id }}"/>
+                <input type="hidden" name="role" value="member"/>
+                <button type="submit" class="btn-sm btn-sm-ghost">Return</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">No active borrows — search the catalog to get started.</div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right sidebar -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+      <!-- Select member if not loaded -->
+      {% if not current_member %}
+      <div class="card" style="border-top: 3px solid var(--gold);">
+        <div class="card-title">Select Your Account</div>
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem; font-family: 'Source Code Pro', monospace; line-height: 1.5;">Enter your member ID to view your books and fines</p>
+        <form method="GET" action="/dashboard" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <input type="hidden" name="role" value="member"/>
+          <input type="text" name="member_id" class="field-input" placeholder="MEM-001"/>
+          <button type="submit" class="btn-primary">Load My Account</button>
+        </form>
+      </div>
+      {% endif %}
+
+      <!-- Member card -->
+      {% if current_member %}
+      <div class="card">
+        <div class="card-title">My Account</div>
+        <div style="display: flex; flex-direction: column; gap: 0.875rem;">
+          <div style="padding-bottom: 0.875rem; border-bottom: 1px solid var(--cream-dark);">
+            <div style="font-size: 11px; color: var(--muted); font-family: 'Source Code Pro', monospace; margin-bottom: 3px;">NAME</div>
+            <div style="font-size: 15px; font-weight: 500; color: var(--navy);">{{ current_member.name }}</div>
+          </div>
+          <div style="padding-bottom: 0.875rem; border-bottom: 1px solid var(--cream-dark);">
+            <div style="font-size: 11px; color: var(--muted); font-family: 'Source Code Pro', monospace; margin-bottom: 3px;">EMAIL</div>
+            <div class="mono" style="font-size: 12px; color: var(--ink);">{{ current_member.email }}</div>
+          </div>
+          <div style="padding-bottom: 0.875rem; border-bottom: 1px solid var(--cream-dark);">
+            <div style="font-size: 11px; color: var(--muted); font-family: 'Source Code Pro', monospace; margin-bottom: 5px;">MEMBER TYPE</div>
+            {% if current_member.member_type == "premium" %}
+              <span class="pill pill-premium">Premium</span>
+            {% else %}
+              <span class="pill pill-student">Student</span>
+            {% endif %}
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--muted); font-family: 'Source Code Pro', monospace; margin-bottom: 3px;">BORROW LIMIT</div>
+            <div class="mono" style="font-size: 13px; color: var(--ink);">{{ current_member.borrow_limit }} books</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Fines -->
+      <div class="card">
+        <div class="card-title">My Fines</div>
+        {% if fines %}
+          <div style="display: flex; flex-direction: column; gap: 0;">
+            {% for fine in fines %}
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 0.75rem 0; border-bottom: 1px solid var(--cream-dark);">
+              <div>
+                <div style="font-size: 13px; font-weight: 500; color: var(--navy);">{{ fine.book_title }}</div>
+                <div class="mono" style="font-size: 11px; color: var(--muted); margin-top: 2px;">{{ fine.reason }}</div>
+              </div>
+              <span class="mono" style="font-size: 14px; color: #c0392b; font-weight: 500; flex-shrink: 0; margin-left: 1rem;">₹{{ fine.amount }}</span>
+            </div>
+            {% endfor %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.875rem;">
+              <span style="font-size: 12px; color: var(--muted); font-family: 'Source Code Pro', monospace;">TOTAL DUE</span>
+              <span class="mono" style="font-size: 18px; color: var(--gold); font-weight: 500;">₹{{ total_fine }}</span>
+            </div>
+          </div>
+        {% else %}
+          <div style="text-align: center; padding: 2rem 0;">
+            <div style="font-size: 22px; margin-bottom: 0.5rem;">✓</div>
+            <div style="font-size: 13px; color: #2d6a2d;">No fines — you're all clear</div>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+{% endif %}
+
+{% endblock %}

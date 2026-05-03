@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}LibTrack{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Source+Sans+3:wght@300;400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:        #0f1f3d;
+      --navy-light:  #1a3260;
+      --navy-mid:    #243b6e;
+      --gold:        #c9a84c;
+      --gold-light:  #e2c97e;
+      --gold-pale:   #f5ecd4;
+      --cream:       #faf6ef;
+      --cream-dark:  #f0e9da;
+      --ink:         #1a1a2e;
+      --muted:       #6b7a99;
+      --border:      rgba(201,168,76,0.18);
+      --card-border: rgba(15,31,61,0.1);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Source Sans 3', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    .serif { font-family: 'Playfair Display', serif; }
+    .mono  { font-family: 'Source Code Pro', monospace; }
+
+    /* ── Navbar ── */
+    .navbar {
+      background: var(--navy);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 2rem; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-mark {
+      width: 34px; height: 34px; border-radius: 6px;
+      background: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark span { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--navy); }
+    .logo-name { font-family: 'Playfair Display', serif; font-size: 19px; color: var(--cream); letter-spacing: 0.02em; }
+    .nav-right { display: flex; align-items: center; gap: 1.25rem; }
+    .nav-link { font-size: 13px; color: rgba(250,246,239,0.55); text-decoration: none; letter-spacing: 0.02em; transition: color 0.2s; }
+    .nav-link:hover { color: var(--gold-light); }
+    .badge {
+      font-family: 'Source Code Pro', monospace; font-size: 11px;
+      padding: 3px 11px; border-radius: 20px; letter-spacing: 0.04em;
+    }
+    .badge-lib { background: rgba(201,168,76,0.12); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.28); }
+    .badge-mem { background: rgba(100,149,237,0.12); color: #a8c4f0;          border: 1px solid rgba(100,149,237,0.25); }
+    .btn-switch {
+      font-size: 12px; color: rgba(250,246,239,0.4);
+      text-decoration: none; padding: 3px 11px;
+      border: 1px solid rgba(250,246,239,0.12);
+      border-radius: 20px; transition: all 0.2s;
+    }
+    .btn-switch:hover { color: #f0a0a0; border-color: rgba(240,160,160,0.3); }
+
+    /* ── Page wrapper ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.75rem;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px; font-weight: 500;
+      color: var(--navy); margin-bottom: 1.25rem;
+    }
+
+    /* ── Form elements ── */
+    .field-label {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px; color: var(--muted);
+      letter-spacing: 0.05em; display: block; margin-bottom: 6px;
+    }
+    .field-input {
+      width: 100%;
+      background: var(--cream); border: 1px solid var(--cream-dark);
+      border-radius: 6px; padding: 9px 13px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px; color: var(--ink);
+      outline: none; transition: border-color 0.2s;
+    }
+    .field-input:focus { border-color: var(--gold); background: #fff; }
+    .field-select {
+      width: 100%;
+      background: var(--cream); border: 1px solid var(--cream-dark);
+      border-radius: 6px; padding: 9px 13px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px; color: var(--ink);
+      outline: none; transition: border-color 0.2s;
+      appearance: none; cursor: pointer;
+    }
+    .field-select:focus { border-color: var(--gold); background: #fff; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%; padding: 10px;
+      background: var(--navy); color: var(--gold-pale);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px; font-weight: 500;
+      border: none; border-radius: 6px; cursor: pointer;
+      letter-spacing: 0.03em; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--navy-light); }
+    .btn-gold {
+      width: 100%; padding: 10px;
+      background: var(--gold); color: var(--navy);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px; font-weight: 500;
+      border: none; border-radius: 6px; cursor: pointer;
+      letter-spacing: 0.03em; transition: background 0.2s;
+    }
+    .btn-gold:hover { background: var(--gold-light); }
+    .btn-sm {
+      padding: 5px 13px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px; border: none; border-radius: 5px;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-sm-navy  { background: var(--navy);  color: var(--gold-pale); }
+    .btn-sm-navy:hover { background: var(--navy-light); }
+    .btn-sm-ghost { background: var(--cream-dark); color: var(--navy); border: 1px solid var(--card-border); }
+    .btn-sm-ghost:hover { border-color: var(--gold); }
+
+    /* ── Stat card ── */
+    .stat-card {
+      background: var(--navy); border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+    }
+    .stat-label { font-family: 'Source Code Pro', monospace; font-size: 11px; color: rgba(250,246,239,0.45); letter-spacing: 0.06em; margin-bottom: 6px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 500; color: var(--gold-light); }
+
+    /* ── Table ── */
+    .lib-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .lib-table th {
+      font-family: 'Source Code Pro', monospace; font-size: 10px;
+      color: var(--muted); letter-spacing: 0.06em; text-align: left;
+      padding: 0 12px 10px 0; border-bottom: 1px solid var(--cream-dark);
+    }
+    .lib-table td {
+      padding: 11px 12px 11px 0;
+      border-bottom: 1px solid var(--cream-dark);
+      color: var(--ink); vertical-align: middle;
+    }
+    .lib-table tr:last-child td { border-bottom: none; }
+    .lib-table tr:hover td { background: var(--cream); }
+
+    /* ── Pill badges ── */
+    .pill {
+      font-family: 'Source Code Pro', monospace; font-size: 10px;
+      padding: 3px 9px; border-radius: 20px; letter-spacing: 0.03em;
+      display: inline-block;
+    }
+    .pill-available { background: #edf7ed; color: #2d6a2d; border: 1px solid #b8dfb8; }
+    .pill-borrowed  { background: #fdf5e6; color: #7a4f1a; border: 1px solid #e8c88a; }
+    .pill-overdue   { background: #fdf0f0; color: #8b2e2e; border: 1px solid #f0b8b8; }
+    .pill-premium   { background: rgba(201,168,76,0.12); color: #7a5a1a; border: 1px solid rgba(201,168,76,0.3); }
+    .pill-student   { background: var(--cream-dark); color: var(--muted); border: 1px solid var(--card-border); }
+
+    /* ── Flash ── */
+    .flash { padding: 11px 15px; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 12px; margin-bottom: 1.5rem; }
+    .flash-ok  { background: #edf7ed; color: #2d6a2d; border: 1px solid #b8dfb8; }
+    .flash-err { background: #fdf0f0; color: #8b2e2e; border: 1px solid #f0b8b8; }
+
+    /* ── Gold rule ── */
+    .gold-rule { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+    /* ── Section header ── */
+    .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.25rem; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--navy); }
+    .section-sub { font-family: 'Source Code Pro', monospace; font-size: 11px; color: var(--muted); }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 14px; }
+
+    /* ── Footer ── */
+    .footer { background: var(--navy); border-top: 1px solid rgba(201,168,76,0.12); margin-top: 4rem; }
+    .footer-inner { max-width: 1200px; margin: 0 auto; padding: 1.1rem 2rem; display: flex; justify-content: space-between; }
+    .footer-text { font-family: 'Source Code Pro', monospace; font-size: 11px; color: rgba(250,246,239,0.25); letter-spacing: 0.03em; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <div class="logo-mark"><span>L</span></div>
+      <span class="logo-name">LibTrack</span>
+    </a>
+    <div class="nav-right">
+      {% if role %}
+        {% if role == "librarian" %}
+          <span class="badge badge-lib">⚿ Librarian</span>
+          <a href="/dashboard?role=librarian" class="nav-link">Dashboard</a>
+          <a href="/books?role=librarian" class="nav-link">Books</a>
+          <a href="/members?role=librarian" class="nav-link">Members</a>
+          <a href="/fines?role=librarian" class="nav-link">Fines</a>
+        {% elif role == "member" %}
+          <span class="badge badge-mem">◈ Member</span>
+          <a href="/dashboard?role=member" class="nav-link">My Portal</a>
+          <a href="/search?role=member" class="nav-link">Search</a>
+          <a href="/my-books?role=member" class="nav-link">My Books</a>
+        {% endif %}
+        <a href="/logout" class="btn-switch">Switch Role</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+{% if message %}
+<div class="page" style="padding-bottom:0">
+  <div class="flash {{ 'flash-ok' if message_type != 'error' else 'flash-err' }}">{{ message }}</div>
+</div>
+{% endif %}
+
+<main class="page">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-text">LibTrack — Library Management System</span>
+    <span class="footer-text">Python · FastAPI · OOP</span>
+  </div>
+</footer>
+
+</body>
+</html>
